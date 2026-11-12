@@ -4,8 +4,7 @@ import {
     View, Text, TextInput, FlatList, TouchableOpacity,
     StyleSheet, ActivityIndicator, RefreshControl,
 } from 'react-native';
-
-const API_URL = 'http://localhost:3000';
+import { API_URL } from '../constants';
 
 const SCOPES = [
     { key: 'all', label: 'All' },

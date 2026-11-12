@@ -40,13 +40,13 @@ O **Dez Notas** permite que usuários:
 
 Antes de começar, instale em sua máquina:
 
-| Ferramenta | Versão recomendada | Observação |
-|---|---|---|
-| **Node.js** | 18 ou superior | Inclui o `npm` |
-| **MySQL** | 8.0 ou superior | Server + cliente (Workbench, CLI, etc.) |
-| **Git** | qualquer versão recente | Para clonar o repositório |
-| **Expo Go** (opcional) | versão mais recente | Necessário apenas para rodar em celular físico |
-| **Android Studio** (opcional) | versão mais recente | Necessário apenas para rodar no emulador Android |
+| Ferramenta                    | Versão recomendada      | Observação                                       |
+| ----------------------------- | ----------------------- | ------------------------------------------------ |
+| **Node.js**                   | 18 ou superior          | Inclui o `npm`                                   |
+| **MySQL**                     | 8.0 ou superior         | Server + cliente (Workbench, CLI, etc.)          |
+| **Git**                       | qualquer versão recente | Para clonar o repositório                        |
+| **Expo Go** (opcional)        | versão mais recente     | Necessário apenas para rodar em celular físico   |
+| **Android Studio** (opcional) | versão mais recente     | Necessário apenas para rodar no emulador Android |
 
 Verifique se estão instalados:
 
@@ -172,6 +172,7 @@ Na raiz do repositório, crie (ou edite) o arquivo `.env`:
 
 ```env
 DB_HOST=localhost
+DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=sua_senha_do_mysql
 DB_NAME=dez_notas
@@ -182,6 +183,7 @@ PORT=3000
 Regras importantes:
 
 - **`DB_PASSWORD`**: a senha que você usa para acessar o MySQL localmente.
+- **`DB_PORT`**: porta em que o MySQL está ouvindo. O padrão é `3306`. Se o seu servidor local usa outra porta (por exemplo, `3307`), ajuste este valor — ou remova a linha e o padrão `3306` será usado.
 - **`JWT_SECRET`**: qualquer string longa e aleatória. Você pode gerar uma com:
   ```bash
   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
@@ -192,11 +194,11 @@ Regras importantes:
 
 O arquivo `constants.js` na raiz contém a URL base da API usada por todas as telas. Abra e ajuste conforme o ambiente em que o app vai rodar:
 
-| Onde você está rodando | `API_URL` |
-|---|---|
-| **Navegador (web)** | `http://localhost:3000` |
-| **Emulador Android** | `http://10.0.2.2:3000` |
-| **Simulador iOS** | `http://localhost:3000` |
+| Onde você está rodando       | `API_URL`                                                    |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Navegador (web)**          | `http://localhost:3000`                                      |
+| **Emulador Android**         | `http://10.0.2.2:3000`                                       |
+| **Simulador iOS**            | `http://localhost:3000`                                      |
 | **Celular físico (Expo Go)** | `http://SEU_IP_LOCAL:3000` (ex.: `http://192.168.0.12:3000`) |
 
 Exemplo de `constants.js` que funciona em web, emulador Android e simulador iOS ao mesmo tempo:
@@ -252,12 +254,12 @@ npx expo start
 
 O Expo exibirá um menu no terminal com as opções:
 
-| Tecla | O que faz |
-|---|---|
-| `w` | Abre o app no navegador (web) |
-| `a` | Abre no emulador Android |
-| `i` | Abre no simulador iOS (somente macOS) |
-| `s` | Alterna para o modo Expo Go (celular físico, escaneia QR) |
+| Tecla | O que faz                                                 |
+| ----- | --------------------------------------------------------- |
+| `w`   | Abre o app no navegador (web)                             |
+| `a`   | Abre no emulador Android                                  |
+| `i`   | Abre no simulador iOS (somente macOS)                     |
+| `s`   | Alterna para o modo Expo Go (celular físico, escaneia QR) |
 
 **Exemplo — rodar no navegador:**
 
@@ -333,6 +335,19 @@ Usuário/senha do MySQL incorretos. Verifique `DB_USER` e `DB_PASSWORD` no `.env
 ### `ECONNREFUSED 127.0.0.1:3306`
 
 O servidor MySQL não está rodando. Inicie-o (via serviço do sistema, XAMPP, WAMP, Docker, etc.).
+
+### `ECONNREFUSED 127.0.0.1:3307` (ou qualquer outra porta)
+
+O `DB_PORT` no `.env` não corresponde à porta em que o MySQL está rodando.
+
+   - Se o MySQL está na porta padrão `3306`: apague a linha `DB_PORT` do `.env` (ou defina `DB_PORT=3306`).
+
+   - Se o MySQL está em outra porta: defina `DB_PORT=<sua porta>` no `.env`.
+
+Para descobrir a porta que o seu MySQL está usando, execute dentro do cliente MySQL:
+```sql
+SHOW VARIABLES LIKE 'port';
+```
 
 ### `Table 'dez_notas.users' doesn't exist`
 
