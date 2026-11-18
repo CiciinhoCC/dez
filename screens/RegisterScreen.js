@@ -21,11 +21,11 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     if (!username.trim() || !password || !confirm) {
-      Alert.alert('Missing fields', 'Fill in all fields.');
+      Alert.alert('Preencha todos os campos.');
       return;
     }
     if (password !== confirm) {
-      Alert.alert('Mismatch', 'Passwords do not match.');
+      Alert.alert('Senhas não são iguais.');
       return;
     }
 
@@ -61,7 +61,7 @@ export default function RegisterScreen({ navigation }) {
 
       <TextInput
         style={styles.input}
-        placeholder="Username"
+        placeholder="Usuário"
         placeholderTextColor="#6c7086"
         autoCapitalize="none"
         autoCorrect={false}
@@ -70,7 +70,7 @@ export default function RegisterScreen({ navigation }) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Senha"
         placeholderTextColor="#6c7086"
         secureTextEntry
         value={password}
@@ -78,7 +78,7 @@ export default function RegisterScreen({ navigation }) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Confirm password"
+        placeholder="Confirmar senha"
         placeholderTextColor="#6c7086"
         secureTextEntry
         value={confirm}
@@ -93,12 +93,12 @@ export default function RegisterScreen({ navigation }) {
         {loading ? (
           <ActivityIndicator color="#1e1e2e" />
         ) : (
-          <Text style={styles.buttonText}>Sign Up</Text>
+          <Text style={styles.buttonText}>Cadastrar</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.link}>Already have an account? Sign in</Text>
+        <Text style={styles.link}>Já tem uma conta? Entre</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );

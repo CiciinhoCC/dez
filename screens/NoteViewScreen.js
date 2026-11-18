@@ -45,9 +45,9 @@ export default function NoteViewScreen({ route, navigation }) {
 
     const handleDelete = async () => {
         const ok = await confirm(
-            'Delete note',
-            `Delete "${note.title}"? This cannot be undone.`,
-            'Delete',
+            'Deletar Nota',
+            `Deletar "${note.title}"? Isso não pode ser desfeito.`,
+            'Deletar',
             true
         );
         if (!ok) return;
@@ -96,7 +96,7 @@ export default function NoteViewScreen({ route, navigation }) {
                     </View>
                     <Text style={styles.metaText}>@{note.author}</Text>
                     {note.is_public === 1 && (
-                        <Text style={styles.publicText}>· public</Text>
+                        <Text style={styles.publicText}>· Público</Text>
                     )}
                 </View>
 
@@ -125,7 +125,7 @@ export default function NoteViewScreen({ route, navigation }) {
                             })
                         }
                     >
-                        <Text style={styles.editBtnText}>Edit</Text>
+                        <Text style={styles.editBtnText}>Editar</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.actionBtn, styles.deleteBtn, deleting && { opacity: 0.6 }]}

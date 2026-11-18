@@ -19,7 +19,7 @@ export default function EditNoteScreen({ route, navigation }) {
   // Title the header based on mode
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: isEditing ? 'Edit Note' : 'New Note',
+      title: isEditing ? 'Editar Nota' : 'Nova Nota',
     });
   }, [navigation, isEditing]);
 
@@ -35,11 +35,11 @@ export default function EditNoteScreen({ route, navigation }) {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      Alert.alert('Missing title', 'Give your note a title.');
+      Alert.alert('Título Faltando', 'Dê um título a sua nota');
       return;
     }
     if (!content.trim()) {
-      Alert.alert('Missing content', 'Write something before saving.');
+      Alert.alert('Conteúdo Faltando', 'Escreva algo antes de salvar');
       return;
     }
 
@@ -47,7 +47,7 @@ export default function EditNoteScreen({ route, navigation }) {
     try {
       const body = {
         title: title.trim(),
-        subject: subject.trim() || 'General',
+        subject: subject.trim() || 'Geral',
         content,
         is_public: isPublic ? 1 : 0,
       };
@@ -96,11 +96,11 @@ export default function EditNoteScreen({ route, navigation }) {
       return;
     }
     Alert.alert(
-      'Discard changes?',
-      'Your edits will be lost.',
+      'Descartar mudanças?',
+      'Seu progresso será perdido.',
       [
-        { text: 'Keep editing', style: 'cancel' },
-        { text: 'Discard', style: 'destructive', onPress: () => navigation.goBack() },
+        { text: 'Continuar Editando', style: 'cancel' },
+        { text: 'Descartar', style: 'destructive', onPress: () => navigation.goBack() },
       ]
     );
   };
@@ -111,20 +111,20 @@ export default function EditNoteScreen({ route, navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.label}>Title</Text>
+        <Text style={styles.label}>Título</Text>
         <TextInput
           style={styles.input}
-          placeholder="Note title"
+          placeholder="Título"
           placeholderTextColor="#6c7086"
           value={title}
           onChangeText={setTitle}
           maxLength={150}
         />
 
-        <Text style={styles.label}>Subject</Text>
+        <Text style={styles.label}>Matéria</Text>
         <TextInput
           style={styles.input}
-          placeholder="e.g. Math, Physics, General"
+          placeholder="e.g. Matemática, Física, Geral"
           placeholderTextColor="#6c7086"
           value={subject}
           onChangeText={setSubject}
@@ -132,7 +132,7 @@ export default function EditNoteScreen({ route, navigation }) {
         />
 
         <View style={styles.publicRow}>
-          <Text style={styles.label}>Public</Text>
+          <Text style={styles.label}>Público/Pessoal</Text>
           <Switch
             value={isPublic}
             onValueChange={setIsPublic}
@@ -141,10 +141,10 @@ export default function EditNoteScreen({ route, navigation }) {
           />
         </View>
 
-        <Text style={styles.label}>Markdown</Text>
+        <Text style={styles.label}>Corpo</Text>
         <TextInput
           style={[styles.input, styles.textarea]}
-          placeholder={'# Heading\n\nWrite your note in markdown...'}
+          placeholder={'# Cabeçalho\n\nEscreva sua nota em markdown...'}
           placeholderTextColor="#6c7086"
           value={content}
           onChangeText={setContent}
@@ -156,7 +156,7 @@ export default function EditNoteScreen({ route, navigation }) {
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
-          <Text style={styles.cancelBtnText}>Cancel</Text>
+          <Text style={styles.cancelBtnText}>Cancelar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.saveBtn, saving && { opacity: 0.6 }]}
@@ -166,7 +166,7 @@ export default function EditNoteScreen({ route, navigation }) {
           {saving ? (
             <ActivityIndicator color="#1e1e2e" />
           ) : (
-            <Text style={styles.saveBtnText}>{isEditing ? 'Save' : 'Create'}</Text>
+            <Text style={styles.saveBtnText}>{isEditing ? 'Salvar' : 'Criar'}</Text>
           )}
         </TouchableOpacity>
       </View>

@@ -32,17 +32,17 @@ export default function App() {
         <Stack.Screen
           name="Notes"
           component={NotesScreen}
-          options={{ title: 'Notes' }}
+          options={{ title: 'Notas' }}
         />
         <Stack.Screen
           name="NoteView"
           component={NoteViewScreen}
-          options={{ title: 'Note' }}
+          options={{ title: 'Nota' }}
         />
         <Stack.Screen
           name="EditNote"
           component={EditNoteScreen}
-          options={{ title: 'Edit Note' }}
+          options={{ title: 'Editar Nota' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

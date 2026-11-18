@@ -7,9 +7,9 @@ import {
 import { API_URL } from '../constants';
 
 const SCOPES = [
-    { key: 'all', label: 'All' },
-    { key: 'mine', label: 'Mine' },
-    { key: 'public', label: 'Public' },
+    { key: 'all', label: 'Todas' },
+    { key: 'mine', label: 'Pessoais' },
+    { key: 'public', label: 'Públicas' },
 ];
 
 export default function NotesScreen({ route, navigation }) {
@@ -99,7 +99,7 @@ export default function NotesScreen({ route, navigation }) {
             <View style={styles.cardFooter}>
                 <Text style={styles.cardMeta}>@{item.author}</Text>
                 {item.is_public === 1 && (
-                    <Text style={styles.cardMetaPublic}>· public</Text>
+                    <Text style={styles.cardMetaPublic}>· Público</Text>
                 )}
             </View>
         </TouchableOpacity>
@@ -109,7 +109,7 @@ export default function NotesScreen({ route, navigation }) {
         <View style={styles.container}>
             <TextInput
                 style={styles.search}
-                placeholder="Search notes, content, authors…"
+                placeholder="Pesquisar"
                 placeholderTextColor="#6c7086"
                 value={query}
                 onChangeText={setQuery}
@@ -150,7 +150,7 @@ export default function NotesScreen({ route, navigation }) {
                                 <Text style={[
                                     styles.subjectText,
                                     active && styles.subjectTextActive,
-                                ]}>{isAll ? 'All subjects' : item}</Text>
+                                ]}>{isAll ? 'Todos' : item}</Text>
                             </TouchableOpacity>
                         );
                     }}
@@ -173,7 +173,7 @@ export default function NotesScreen({ route, navigation }) {
                         />
                     }
                     ListEmptyComponent={
-                        <Text style={styles.empty}>No notes found.</Text>
+                        <Text style={styles.empty}>Nenhuma nota encontrada.</Text>
                     }
                 />
             )}
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1e1e2e',
         borderWidth: 1,
         borderColor: '#313244',
+        alignSelf: 'flex-start',   // ← key line
     },
     subjectChipActive: {
         backgroundColor: '#a6e3a1',

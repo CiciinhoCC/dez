@@ -20,7 +20,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!username.trim() || !password) {
-      Alert.alert('Missing fields', 'Enter both username and password.');
+      Alert.alert('Campos Faltando', 'Escreva seu usuário e senha.');
       return;
     }
 
@@ -54,11 +54,11 @@ export default function LoginScreen({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Text style={styles.title}>Dez Notas</Text>
-      <Text style={styles.subtitle}>Sign in to your notes</Text>
+      <Text style={styles.subtitle}>Entre e veja suas anotações</Text>
 
       <TextInput
         style={styles.input}
-        placeholder="Username"
+        placeholder="Usuário"
         placeholderTextColor="#6c7086"
         autoCapitalize="none"
         autoCorrect={false}
@@ -67,7 +67,7 @@ export default function LoginScreen({ navigation }) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Senha"
         placeholderTextColor="#6c7086"
         secureTextEntry
         value={password}
@@ -87,7 +87,7 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.link}>Don't have an account? Sign up</Text>
+        <Text style={styles.link}>Não tem uma conta? Cadastre-se</Text>
       </TouchableOpacity>
     </KeyboardAvoidingView>
   );
