@@ -16,6 +16,7 @@ Aplicação mobile de anotações em Markdown, com autenticação JWT, níveis d
 - [Instalação das dependências](#instalação-das-dependências)
 - [Passo a passo](#passo-a-passo)
 - [Como testar o fluxo completo](#como-testar-o-fluxo-completo)
+- [Gerando o APK (Entrega 4)](#gerando-o-apk-entrega-4)
 - [Solução de problemas](#solução-de-problemas)
 - [Notas de segurança](#notas-de-segurança)
 - [Autoria](#autoria)
@@ -40,13 +41,14 @@ O **Dez Notas** permite que usuários:
 
 Antes de começar, instale em sua máquina:
 
-| Ferramenta                    | Versão recomendada      | Observação                                       |
-| ----------------------------- | ----------------------- | ------------------------------------------------ |
-| **Node.js**                   | 18 ou superior          | Inclui o `npm`                                   |
-| **MySQL**                     | 8.0 ou superior         | Server + cliente (Workbench, CLI, etc.)          |
-| **Git**                       | qualquer versão recente | Para clonar o repositório                        |
-| **Expo Go** (opcional)        | versão mais recente     | Necessário apenas para rodar em celular físico   |
-| **Android Studio** (opcional) | versão mais recente     | Necessário apenas para rodar no emulador Android |
+| Ferramenta | Versão recomendada | Observação |
+|---|---|---|
+| **Node.js** | 18 ou superior | Inclui o `npm` |
+| **MySQL** | 8.0 ou superior | Server + cliente (Workbench, CLI, etc.) |
+| **Git** | qualquer versão recente | Para clonar o repositório |
+| **Expo Go** (opcional) | versão mais recente | Necessário apenas para rodar em celular físico |
+| **Android Studio** (opcional) | versão mais recente | Necessário apenas para rodar no emulador Android |
+| **Conta Expo** (opcional) | gratuita | Necessária apenas para gerar o APK via EAS |
 
 Verifique se estão instalados:
 
@@ -81,13 +83,14 @@ dez/
 ├── db.js                 # Conexão com o MySQL
 ├── server.js             # Ponto de entrada do servidor
 ├── .env
+├── eas.json              # Configuração de build do APK
 ├── database.sql          # Script de criação do banco
 └── README.md
 ```
 
 O `package.json` é único e reúne dependências do aplicativo (Expo / React Native) **e** do servidor (Express / MySQL / JWT) — ambos são executados a partir da mesma raiz.
 
-> O arquivo `.env` **não deve ser commitado** — ele contém a senha do MySQL e o `JWT_SECRET`. Veja a seção [Notas de segurança](#notas-de-segurança).
+> O arquivo `.env` **não deve ser commitado** — ele contém a senha do MySQL, o `JWT_SECRET` e (opcionalmente) o IP local da máquina. Veja a seção [Notas de segurança](#notas-de-segurança).
 
 ---
 
@@ -103,6 +106,7 @@ Isso instala tudo o que o projeto precisa. As principais dependências são:
 
 - **Backend:** `express`, `cors`, `mysql2`, `bcrypt`, `jsonwebtoken`, `dotenv`
 - **Frontend:** `expo`, `react`, `react-native`, `@react-navigation/native`, `@react-navigation/native-stack`, `react-native-screens`, `react-native-safe-area-context`, `react-native-markdown-display`
+- **Build (APK):** `eas-cli` (instalado separadamente — veja a seção [Gerando o APK](#gerando-o-apk-entrega-4))
 
 Se em algum momento essas dependências não estiverem no `package.json`, instale manualmente:
 
@@ -114,6 +118,11 @@ npm install express cors mysql2 bcrypt jsonwebtoken dotenv
 npx expo install react-native-screens react-native-safe-area-context react-native-markdown-display
 npm install @react-navigation/native @react-navigation/native-stack
 ```
+
+> **Nota:** a biblioteca `react-native-markdown-display` depende internamente do `punycode`, que não existe no runtime nativo do React Native. Se o build do APK falhar com `Unable to resolve module punycode`, instale o pacote como workaround:
+> ```bash
+> npm install punycode
+> ```
 
 ---
 
@@ -161,7 +170,7 @@ Se você quiser criar um usuário administrador para testar o nível de acesso a
 
 ```sql
 -- Após cadastrar um usuário pelo app:
-UPDATE users SET role = 'admin' WHERE username = 'CiciinhoCC';
+UPDATE users SET role = 'admin' WHERE username = 'seu_usuario';
 ```
 
 > **Importante:** o papel (`role`) é gravado dentro do JWT no momento do login. Depois de alterar o papel no banco, faça **logout e login novamente** no app para o novo papel entrar em vigor.
@@ -178,6 +187,7 @@ DB_PASSWORD=sua_senha_do_mysql
 DB_NAME=dez_notas
 JWT_SECRET=uma_string_longa_e_aleatoria_aqui
 PORT=3000
+EXPO_PUBLIC_API_URL=http://192.168.0.12:3000
 ```
 
 Regras importantes:
@@ -189,30 +199,33 @@ Regras importantes:
   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
   ```
 - **`PORT`**: se `3000` estiver ocupada, troque para outra porta livre (ex.: `3001`) — **e ajuste o `API_URL` em `constants.js`** de acordo (veja o próximo passo).
+- **`EXPO_PUBLIC_API_URL`**: endereço da API quando o app roda **fora do navegador**. Em `localhost`/web esse valor é ignorado. No emulador Android, deve ser `http://10.0.2.2:3000`; em celular físico, deve ser o IP da sua máquina na rede local (`http://192.168.0.12:3000`). Veja o próximo passo para o detalhamento completo.
+
+> **Atenção:** o Expo carrega `.env` automaticamente ao iniciar `npx expo start`, mas **é preciso reiniciar o servidor do Expo** sempre que `.env` for alterado. O EAS Build **não envia** o `.env` para a nuvem — veja a seção [Gerando o APK](#gerando-o-apk-entrega-4) para como passar essa variável no build.
 
 ### 4. Ajustar `constants.js`
 
-O arquivo `constants.js` na raiz contém a URL base da API usada por todas as telas. Abra e ajuste conforme o ambiente em que o app vai rodar:
-
-| Onde você está rodando       | `API_URL`                                                    |
-| ---------------------------- | ------------------------------------------------------------ |
-| **Navegador (web)**          | `http://localhost:3000`                                      |
-| **Emulador Android**         | `http://10.0.2.2:3000`                                       |
-| **Simulador iOS**            | `http://localhost:3000`                                      |
-| **Celular físico (Expo Go)** | `http://SEU_IP_LOCAL:3000` (ex.: `http://192.168.0.12:3000`) |
-
-Exemplo de `constants.js` que funciona em web, emulador Android e simulador iOS ao mesmo tempo:
+O arquivo `constants.js` na raiz contém a URL base da API usada por todas as telas. O comportamento depende do ambiente:
 
 ```js
 import { Platform } from 'react-native';
 
-export const API_URL = Platform.select({
-  web:     'http://localhost:3000',
-  android: 'http://10.0.2.2:3000',
-  ios:     'http://localhost:3000',
-  default: 'http://localhost:3000',
-});
+const envURL = process.env.EXPO_PUBLIC_API_URL;
+
+export const API_URL =
+  Platform.OS === 'web'
+    ? 'http://localhost:3000'          // web sempre usa localhost
+    : (envURL || 'http://10.0.2.2:3000'); // mobile usa a env ou o emulador
 ```
+
+O valor de `EXPO_PUBLIC_API_URL` (definido em `.env`) é o que determina o comportamento fora da web:
+
+| Onde você está rodando | `EXPO_PUBLIC_API_URL` no `.env` |
+|---|---|
+| **Navegador (web)** | *qualquer valor* — a web sempre usa `http://localhost:3000` |
+| **Emulador Android** | `http://10.0.2.2:3000` |
+| **Simulador iOS** | `http://localhost:3000` |
+| **Celular físico (Expo Go)** | `http://SEU_IP_LOCAL:3000` (ex.: `http://192.168.0.12:3000`) |
 
 > `10.0.2.2` é o endereço especial que o emulador Android usa para acessar a máquina hospedeira. Em um celular físico, use o **IP da sua máquina na rede local** (descubra com `ipconfig` no Windows ou `ifconfig`/`ip a` no Linux/macOS) e garanta que celular e computador estejam na mesma rede Wi-Fi.
 
@@ -227,7 +240,7 @@ node server.js
 Você deve ver no terminal:
 
 ```
-API listening on http://localhost:3000
+API listening on http://0.0.0.0:3000
 ```
 
 Para verificar, abra no navegador:
@@ -242,6 +255,14 @@ A resposta esperada é:
 {"status":"ok","service":"dez_notas API"}
 ```
 
+Para testar se a API está acessível **de outros dispositivos na rede** (necessário para o app no celular), abra no navegador do próprio celular:
+
+```
+http://SEU_IP_LOCAL:3000/
+```
+
+Se funcionar, a rede está pronta. Se não funcionar, o firewall do computador pode estar bloqueando a porta — veja a seção [Solução de problemas](#solução-de-problemas).
+
 **Deixe esse terminal aberto** — o servidor precisa continuar rodando enquanto você usa o app.
 
 ### 6. Rodar o aplicativo
@@ -254,12 +275,12 @@ npx expo start
 
 O Expo exibirá um menu no terminal com as opções:
 
-| Tecla | O que faz                                                 |
-| ----- | --------------------------------------------------------- |
-| `w`   | Abre o app no navegador (web)                             |
-| `a`   | Abre no emulador Android                                  |
-| `i`   | Abre no simulador iOS (somente macOS)                     |
-| `s`   | Alterna para o modo Expo Go (celular físico, escaneia QR) |
+| Tecla | O que faz |
+|---|---|
+| `w` | Abre o app no navegador (web) |
+| `a` | Abre no emulador Android |
+| `i` | Abre no simulador iOS (somente macOS) |
+| `s` | Alterna para o modo Expo Go (celular físico, escaneia QR) |
 
 **Exemplo — rodar no navegador:**
 
@@ -300,12 +321,112 @@ Após o app abrir, siga estes passos para validar que tudo está funcionando:
 
 ---
 
+## Gerando o APK (Entrega 4)
+
+O APK é gerado via **EAS Build**, o serviço de build na nuvem da Expo. Ele compila o app em um servidor remoto e devolve um link para download do `.apk`.
+
+> **Importante:** o APK **não contém** o servidor Node.js nem o MySQL. Ele é apenas o cliente. Para o APK funcionar, a API precisa estar rodando em algum lugar acessível ao celular (sua máquina na mesma rede Wi-Fi, ou um servidor remoto). O APK só "conversa" com a API pela rede.
+
+### 1. Instalar o EAS CLI e criar/logar em uma conta Expo
+
+```bash
+npm install --global eas-cli
+eas login
+```
+
+Ou, sem instalar globalmente, use `npx eas-cli@latest` em todos os comandos abaixo.
+
+Se ainda não tem conta, crie em [expo.dev](https://expo.dev) (é gratuito).
+
+### 2. Configurar o build
+
+Na raiz do projeto:
+
+```bash
+eas build:configure
+```
+
+Isso gera o arquivo `eas.json`. Abra e adicione um perfil `preview` com `buildType: "apk"` (o perfil padrão gera AAB, que não é instalável diretamente):
+
+```json
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      },
+      "environment": "preview"
+    }
+  }
+}
+```
+
+### 3. Passar `EXPO_PUBLIC_API_URL` para o servidor de build
+
+O EAS **não envia** o arquivo `.env` para a nuvem. É necessário registrar a variável diretamente no EAS. Substitua `192.168.0.12` pelo IP da sua máquina:
+
+```bash
+npx eas-cli@latest env:set \
+  --name EXPO_PUBLIC_API_URL \
+  --value "http://192.168.0.12:3000" \
+  --environment preview \
+  --visibility plaintext
+```
+
+Confirme que a variável foi salva:
+
+```bash
+npx eas-cli@latest env:list --environment preview
+```
+
+O IP da máquina fica registrado apenas no EAS — **não** no repositório. Se o IP da sua máquina mudar (por exemplo, ao reconectar ao Wi-Fi), repita o comando acima com o novo valor antes de refazer o build.
+
+### 4. Fazer o build
+
+```bash
+npx eas-cli@latest build -p android --profile preview
+```
+
+O terminal exibirá um link para acompanhar o progresso em `expo.dev`. O build leva em média 10–15 minutos. Ao final, aparece um segundo link para **baixar o `.apk`**.
+
+### 5. Instalar e testar
+
+1. Baixe o `.apk` no computador.
+2. Transfira para o celular (por cabo USB, Google Drive, WhatsApp Web, etc.) ou escaneie o QR Code exibido pelo EAS se disponível.
+3. No celular, permita a instalação de "apps de fontes desconhecidas" quando solicitado.
+4. Instale o APK.
+5. **Antes de abrir o app:** confirme que:
+   - a API está rodando (`node server.js`);
+   - o celular e o computador estão na mesma rede Wi-Fi;
+   - o navegador do celular consegue abrir `http://SEU_IP_LOCAL:3000/`.
+6. Abra o app, faça login e teste o fluxo completo.
+
+### Se o build falhar
+
+- **`Unable to resolve module punycode`** → rode `npm install punycode` e refaça o build com `--clear-cache`.
+- **`Unknown error. See logs of the Bundle JavaScript build phase`** → abra o log completo no painel do Expo, procure o **primeiro erro específico** e cole-o para diagnóstico. Costuma ser uma dependência ausente ou uma sintaxe inválida.
+- **Build passa, mas app não conecta** → confira o painel de logs do Android (`adb logcat`) ou use a dica da seção [Solução de problemas](#solução-de-problemas) sobre ver a `API_URL` em uso dentro do app.
+
+### Alternativa: build local (sem EAS)
+
+Se preferir não depender da nuvem, e já tiver o Android Studio instalado:
+
+```bash
+npx expo prebuild --platform android
+cd android
+./gradlew assembleRelease
+```
+
+O `.apk` fica em `android/app/build/outputs/apk/release/app-release.apk`. Como o bundle é gerado localmente, o `.env` local é lido normalmente — não é preciso registrar `EXPO_PUBLIC_API_URL` no EAS. O primeiro build leva mais tempo por baixar as dependências nativas.
+
+---
+
 ## Solução de problemas
 
 ### `NetworkError when attempting to fetch resource`
 
 - A API não está rodando → confira o terminal do `node server.js`.
-- `API_URL` em `constants.js` está errado para o ambiente atual → veja a tabela no [Passo 4](#4-ajustar-constantsjs).
+- `API_URL` errado para o ambiente atual → veja a tabela no [Passo 4](#4-ajustar-constantsjs).
 - CORS não está habilitado no servidor → verifique se `app.use(cors())` existe no `server.js`.
 
 ### `JSON.parse: unexpected character at line 1 column 1`
@@ -340,11 +461,11 @@ O servidor MySQL não está rodando. Inicie-o (via serviço do sistema, XAMPP, W
 
 O `DB_PORT` no `.env` não corresponde à porta em que o MySQL está rodando.
 
-   - Se o MySQL está na porta padrão `3306`: apague a linha `DB_PORT` do `.env` (ou defina `DB_PORT=3306`).
-
-   - Se o MySQL está em outra porta: defina `DB_PORT=<sua porta>` no `.env`.
+- Se o MySQL está na porta padrão `3306`: apague a linha `DB_PORT` do `.env` (ou defina `DB_PORT=3306`).
+- Se o MySQL está em outra porta: defina `DB_PORT=<sua porta>` no `.env`.
 
 Para descobrir a porta que o seu MySQL está usando, execute dentro do cliente MySQL:
+
 ```sql
 SHOW VARIABLES LIKE 'port';
 ```
@@ -352,6 +473,23 @@ SHOW VARIABLES LIKE 'port';
 ### `Table 'dez_notas.users' doesn't exist`
 
 O script `database.sql` não foi executado ou foi executado em outro banco. Rode novamente e confira com `SHOW TABLES`.
+
+### O celular (ou o emulador) não consegue alcançar a API
+
+- **Emulador Android:** o IP correto é `10.0.2.2` (não `localhost`, não o IP da máquina). Confirme que `EXPO_PUBLIC_API_URL` em `.env` está definido como `http://10.0.2.2:3000` **e reinicie `npx expo start`**.
+- **Celular físico:** o IP correto é o da máquina na rede local. Teste antes no navegador do celular (`http://SEU_IP_LOCAL:3000/`). Se não abrir:
+  - Verifique o firewall do computador (veja abaixo).
+  - Confirme que os dois estão na mesma rede Wi-Fi.
+  - Confirme que o `server.js` escuta em `0.0.0.0` e não apenas em `127.0.0.1`. A linha deve ser `app.listen(PORT, '0.0.0.0', ...)`.
+- **Windows — liberar a porta 3000:** abra o PowerShell como administrador e execute:
+  ```powershell
+  New-NetFirewallRule -DisplayName "DezNotas API" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow -Profile Private
+  ```
+- **macOS / Linux:** permita o `node` na configuração do firewall ou execute `sudo ufw allow 3000/tcp`.
+
+### Build do APK falha com "Bundle JavaScript"
+
+A causa é sempre um erro específico dentro do log. Abra o painel do Expo, expanda a fase **"Bundle JavaScript"** e procure a primeira mensagem de erro real (ex.: `Unable to resolve module ...`, `SyntaxError`, `ENOENT`). Corrija, rode `npx eas-cli@latest build -p android --profile preview --clear-cache` para refazer.
 
 ---
 
@@ -367,9 +505,10 @@ Este projeto foi desenvolvido para fins acadêmicos, mas segue boas práticas b�
 
 **O que não deve ser enviado ao repositório:**
 
-- Arquivo `.env` (contém senha do banco e `JWT_SECRET`).
+- Arquivo `.env` (contém senha do banco, `JWT_SECRET` e, opcionalmente, o IP local da máquina).
 - Credenciais reais de qualquer tipo.
 - `node_modules/`.
+- Qualquer IP da rede local em arquivos versionados (use `EXPO_PUBLIC_API_URL` em `.env` ou no EAS em vez de hardcodar em `constants.js` ou `eas.json`).
 
 Esses itens já devem estar cobertos pelo `.gitignore`. Antes de cada entrega, confirme com:
 
@@ -378,13 +517,3 @@ git status
 ```
 
 que nenhum arquivo sensível aparece na lista.
-
----
-
-## Autoria
-
-Projeto desenvolvido como avaliação incremental em 4 entregas para a disciplina de **Aplicação Mobile com JWT**.
-
-- **Aluno(a):** *[seu nome completo]*
-- **Matrícula:** *[sua matrícula]*
-- **Repositório:** *[URL do repositório no GitHub]*
